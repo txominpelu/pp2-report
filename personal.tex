@@ -1,0 +1,233 @@
+
+
+
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[american]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage{graphicx}
+
+\title{NoWork\\ Personal Report}
+\author{Inigo Mediavilla\\[2em]}
+\date\today
+
+\begin{document}
+\maketitle
+
+%% Index
+%% - Introduction to Rewriting system (what it is, what is useful for)
+%% - Justification for the project (what have we gained from doing,
+%% how could a user benefit from it)
+%%
+%% - Global vision of the project (short description of how to
+%% describe a language with the system, describing every one of the concepts)
+%%
+%% - Subsystems (a short description of every part
+%% of the project (parsing, typechecking
+%% - How does the system work? Explain how the rewriting of a system
+%% is implemented by giving a term and explaining what is the term,
+%% what is the pattern, what is the metavariable of placeholder
+%% -
+%% - Problem with rewriting (what subtree should I replace first -
+%% show with an example why it matters because it affects the result)
+%% - Initial Naive version of rewriting: (1. without fixpoint (Problems)
+%% 2. Bottom-up and Top-down 3. Higher flexibility Strategies)
+%%
+%% - Conclusion
+
+\section{Introduction to rewriting systems}
+
+Programming languages (or other systems based on rewriting rules)
+are defined as a set of transformations called
+rewriting rules. This rewriting rules are the core of the language and
+they define what is the computational power of the language as well as
+its expressivity and other properties.
+
+This systems based on rewriting rules have applications that are not
+restricted to the well known general paradigm programming languages
+for computers. Systems based on this kind of rules have been used for
+the analysis of bussiness interactions or for the formalization of
+some logics, for example the Heyting-Kolmogorov mapping has shown that
+predicate logic can be expressed as a set of rewriting rules.
+
+One of the reasons why this kind of systems are so widely used is that
+they have been well studied, they are well understood and a
+wide range of tools exist to prove properties on them.
+
+\section{Justification}
+
+Despite the multiple applications of these systems and all the
+mathematical tools available to prove properties on them building a
+new rewriting system or tuning an existing one for experimentation is
+still a really tedious task. The implementation of this kind of
+system from scratch requires building a parser for the language, a
+type checker, and all the code to find matches for a rule and
+transforming the existing term when matches are found. Most of these
+steps require a great amount of work even though they're relatively
+simple. Besides a great amount of this work could be generalized since
+the difference between two of these systems are reduced only to the
+definition of the rules.
+
+This is the purpose of Nowork, to provide the generic part in the
+implementation of this kind of system allowing users to define new
+systems by only defining the rules that define them.
+
+%% It also allows to prove some properties on them and further work
+%% on nowork could also facilitate the automatic verification of
+%% properties for these systems.
+
+\section{ Pedagogical value }
+
+\section{ NoWork - Rewriting System }
+
+NoWork users can define their own rewriting system without having to
+write their own parser, typechecker and whithout having to code the
+reduction rules of the interpreter of the programming language. To do
+that NoWork offers a language where all the rules can be defined as
+well as all the types, constants and operations available in the
+language.
+
+Rules are defined as a pattern  and a transformation. The pattern
+describes the model that NoWork will try to find in a given term
+to replace it by the transformation specified by the rule.
+
+\begin{figure}[!h]
+\begin{verbatim}
+
+rule = pattern + transformation
+
+e.g App(Lambda(x?, y?), z? ) => Subst(x?, z?, y?) // Substituting x by
+z in y
+\end{verbatim}
+\caption{Structure of a pattern}
+\end{figure}
+
+On top of that NoWork allows a simple syntax for defining Constants.
+
+\begin{figure}[!h]
+\begin{verbatim}
+
+constant Nil : forall(A).List<A>
+\end{verbatim}
+\caption{Definition of a constant}
+\end{figure}
+
+
+It also allows to define Operators that are not like the higher order functions
+that we know in functional programming languages since all the
+reduction in NoWork is specified in the reduction rules. Operators
+just give the name and the type of a reduction. Usually in the
+definition of a language every operator will have a rewriting rule
+that will take a subtree whose root has the same name as the operator
+and if the language is well formed the transformation will conform to
+the rule defined in the operator.
+
+
+\begin{figure}[!h]
+\begin{verbatim}
+
+operator Cons : forall(A).A * List<A> -> List<A>
+
+\end{verbatim}
+\caption{Definition of an operator}
+\end{figure}
+
+Kinds allow to define the constant types and also the polymorphic types when
+their definition depends on a type variable.
+
+\begin{figure}[!h]
+\begin{verbatim}
+
+kind Bool : type // Constant type
+kind List : type -> type // Polymorphic type
+\end{verbatim}
+\caption{Definition of kinds}
+\end{figure}
+
+Therefore, the rewriting rules provide the semantics of the language
+while the type annotations provided in the constants, the operators as well
+as the kinds allow the user to define the typing rules. All together
+this language helps the user concisely define a programming language
+declaratively without having to implement a parser, a typechecker and
+an interpreter.
+
+\section{Global vision of the system}
+
+We can consider that programs written in NoWork use two separate languages:
+
+Definition of the language. Written in NoWork's language. Contains the
+constants, operators, kinds and rules as they have been described
+previously. This definition must conform to the grammar and type
+checking rules of NoWork's language to avoid the definition of
+malformed languages.
+
+Language Terms. Once a language has been defined with NoWork terms of
+that language can be written as trees. This trees should conform to the
+typing rules that have been defined for the language that are
+independent of NoWork's language rules.
+
+In addition NoWork provides a mini-language with a list of commands that are parsed by
+NoWork's toplevel and that allow the user to interact with the
+program. When the toplevel receives command it executes a list of
+steps that can be generalized to:
+
+\subsection{Process}
+
+\begin{figure}[!h]
+\begin{verbatim}
+Parsing + Type Checking  + Rewriting (includes pattern matching + transformation)
+\end{verbatim}
+\caption{ Phases of the evaluation of a command }
+\end{figure}
+
+Parsing: Read file with the definition an convert it into an ast that
+can contain a definition of a language or an interaction with a term
+of the language
+
+Typechecking: If the command is a definition of the language NoWork's
+Language typing rules are verified. Otherwise the command is an interaction with a
+term and the term needs to be typed checked against the definition of
+the language contained in the environment.
+
+Rewriting: This phase occurs only when the command is not a definition
+of the language. In this phase the term is explored with a
+given strategy looking for matches of the patterns described in the
+rewriting rules of the language. When a match is found the
+transformation is applied to the part of the term where the match
+was found.
+
+\section{Rewriting}
+
+
+\section{Conclusion}
+
+What have I learned, What are the disadvantages and advantages of the
+solution proposed, how could this implementation could be improved in
+the future...
+
+Problem:
+
+Defining a framework for writing nominal rewriting systems:
+
+Why? Because it is useful to play with different variations of a
+rewriting systems to understand the differences in expressivity, ``puissance'',
+congruence, and normalisation properties
+
+(Describe every one of those properties)
+
+This kind of tool with the right support for traces and the right level of explanation in every
+operation can be a powerful learning tool.
+
+From a pedagogical point of view the implementation of nominal
+workbench has provided me with a deeper understanding of rewriting,
+considering this concept in Peano Arithmetic, or CCS has widened the
+vision that I had for this concept mainly reduced to lambda calculus
+at the beginning of the project.
+
+
+Why nominal and non-linera? The additional adjectives of non-linear and nominal 
+
+
+\end{document}
