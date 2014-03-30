@@ -78,7 +78,6 @@ systems by only defining the rules that define them.
 %% on nowork could also facilitate the automatic verification of
 %% properties for these systems.
 
-\section{ Pedagogical value }
 
 \section{ NoWork - Rewriting System }
 
@@ -94,13 +93,19 @@ describes the model that NoWork will try to find in a given term
 to replace it by the transformation specified by the rule.
 
 \begin{figure}[!h]
+\begin{center}
 \begin{verbatim}
 
 rule = pattern + transformation
 
-e.g App(Lambda(x?, y?), z? ) => Subst(x?, z?, y?) // Substituting x by
-z in y
+rule [beta] :
+  App(Lambda(?x, ?T), ?U)  => Subst(?x, ?T, ?U)
+
+pattern = App(Lambda(?x, ?T), ?U) 
+transformation = Subst(?x, ?T, ?U)
+
 \end{verbatim}
+\end{center}
 \caption{Structure of a pattern}
 \end{figure}
 
@@ -177,7 +182,8 @@ steps that can be generalized to:
 
 \begin{figure}[!h]
 \begin{verbatim}
-Parsing + Type Checking  + Rewriting (includes pattern matching + transformation)
+Parsing + Type Checking  + Rewriting
+Rewrting = pattern matching + transformation
 \end{verbatim}
 \caption{ Phases of the evaluation of a command }
 \end{figure}
@@ -200,9 +206,122 @@ was found.
 
 \section{Rewriting}
 
+Rules are defined as patterns with placeholders (look for the name for
+that) . When a match is found the placeholders act as variables whose
+values are given by the content of the match. Those variables can be
+reused in the transformation. In a simple version of pattern matching
+called linear pattern matchin they act like capture groups in regular
+expresions. (Beware that NoWork has implemented a more complex version of
+pattern matching called non-linear pattern matching where the same
+placeholder can appear many times in the same pattern).
 
+For example if we take again the initial example we can see the
+pattern, placeholder and transformation in a rule of lambda calculus.
+
+\begin{figure}
+\begin{verbatim}
+App(Lambda(x, y), z) => Subst(...)
+
+Pattern = App(Lambda(x, y), z)
+Transformation = Subst(x?, y?, z?) // Replace x by z in y
+Placeholders = {x, y, z}
+
+When applied to:
+
+App(Lambda(a, a), b)
+Environment = { x = a, y = a, z = b }
+
+\end{verbatim}
+\caption{Elements of a pattern}
+\end{figure}
+
+During the rewriting process the rewriting mechanism asks the pattern
+matcher to look for matches of a pattern and the pattern matcher
+returns the matches with the values for the placeholders. Once the
+rewriting process has it only has to fill the holes that exist in the
+transformation with the values of the environment generated from the
+matching.
+
+
+\begin{figure}
+\begin{verbatim}
+Environment = { x = a, y = a, z = b }
+
+Subst (x, y, z ) in Environment => Subst (a, a, b) 
+
+\end{verbatim}
+\caption{Rewriting last step}
+\end{figure}
+
+However this really simple vision of rewriting hides a small subtlety
+that concerns the way the term is traversed during pattern matching
+and how the transformations are applied. The initial problem is that
+a term can have many occurrences of the same match and depending on
+how the tree is traversed the result of applying the same set of rules
+may be different. If we take the following example:
+
+
+\begin{figure}[!h]
+\includegraphics[scale=0.4]{multiple-reductions.png}
+
+\caption{Term with different reductions}
+\end{figure}
+
+Explain how the result can be different ..
+
+\subsection{Hardcoded strategies}
+
+The simplest solution to this problem consists on predefining the
+strategy to explore the tree looking for matches and coding the
+rewriting algorithm to respect this strategy. This was the approach
+that was implemented in the first versions of NoWork and the initial
+strategies that were implemented where Bottom-up where matches are
+found starting from the bottom of the tree and climbing the tree and
+Top-down that does the opposite.
+
+However the project required the implementation of more
+strategies and the solution that was adopted was the definition of a
+language of strategies that allows the user to specify the way the
+rewriting algorithm traverses the term to rewrite it. A good
+explanation of the language of strategies is provided in NoWork's user
+manual. 
 \section{Conclusion}
 
+We have seen that programming languages have many applications not
+only in computer science but also in other fields like logic and the
+analysis of business processes for example. However the implementation
+of programming languages for the verification of some of their
+properties is a long process even if some of the steps could be
+simplified and generalized. That is the purpose of NoWork, to simplify
+the process of creating a naive version of a programming language just
+by describing the rewriting rules and the typing rules of the
+language. Once this is done the user can test the reduction of a term
+given its AST.
+
+
+We have also seen a quick description of what is the process that is
+carried out inside NoWork to allow the user to define a language and
+try to reduce a term of the language to then explain more in depth the
+implementation process for the rewriting part of the process. We have
+seen the importance of the evaluation order in the matches and how in
+NoWork started by implementing two simple hardcoded strategies
+Top-Down and Bottom-Up to then provide a more powerful and flexible
+solution based on a minilanguage for the description of strategies.
+
+The resulting implementation of NoWork is a tool that allows to
+define languages in a simple way and that provides a flexible language
+to specify the evaluation strategy for the language. Therefore it
+could prove a really valuable tool for defining prototype languages
+and manually verify some reduction properties on them.
+
+From a pedagogical point of view the implementation of nominal
+workbench has provided me with a deeper understanding of rewriting,
+considering this concept in Peano Arithmetic, or CCS has widened the
+vision that I had for this concept mainly reduced to lambda calculus
+at the beginning of the project.
+
+
+\subsection{ Pedagogical value }
 What have I learned, What are the disadvantages and advantages of the
 solution proposed, how could this implementation could be improved in
 the future...
@@ -220,14 +339,14 @@ congruence, and normalisation properties
 This kind of tool with the right support for traces and the right level of explanation in every
 operation can be a powerful learning tool.
 
-From a pedagogical point of view the implementation of nominal
-workbench has provided me with a deeper understanding of rewriting,
-considering this concept in Peano Arithmetic, or CCS has widened the
-vision that I had for this concept mainly reduced to lambda calculus
-at the beginning of the project.
-
-
 Why nominal and non-linera? The additional adjectives of non-linear and nominal 
+k
 
+
+The initial implementation
+
+- Is Kleene's algorithm necessary to reduce terms to their normal form
+- Problems with rewriting systems
+  - alpha conversion + difficulty to do proofs
 
 \end{document}
