@@ -39,17 +39,16 @@
 
 \section{Introduction to rewriting systems}
 
-Programming languages (or other systems based on rewriting rules)
-are defined as a set of transformations called
-rewriting rules. This rewriting rules are the core of the language and
-they define what is the computational power of the language as well as
+Term rewriting systems are systems that  are defined as a set of transformations called
+rewriting rules. These rewriting rules are the core of the language and
+they define the computational power of the language as well as
 its expressivity and other properties.
 
-This systems based on rewriting rules have applications that are not
+ These systems have applications that are not
 restricted to the well known general paradigm programming languages
 for computers. Systems based on this kind of rules have been used for
 the analysis of bussiness interactions or for the formalization of
-some logics, for example the Heyting-Kolmogorov mapping has shown that
+some logics, for example the Brouwer-Heyting-Kolmogorov interpretation has shown that
 predicate logic can be expressed as a set of rewriting rules.
 
 One of the reasons why this kind of systems are so widely used is that
@@ -127,7 +126,7 @@ just give the name and the type of a reduction. Usually in the
 definition of a language every operator will have a rewriting rule
 that will take a subtree whose root has the same name as the operator
 and if the language is well formed the transformation will conform to
-the rule defined in the operator.
+the typing defined in the operator.
 
 
 \begin{figure}[!h]
@@ -160,9 +159,10 @@ an interpreter.
 
 \section{Global vision of the system}
 
-We can consider that programs written in NoWork use two separate languages:
+We can consider that code written in NoWork belongs to one of two
+different categories:
 
-Definition of the language. Written in NoWork's language. Contains the
+Definitions of the language. Written in NoWork's language. Contains the
 constants, operators, kinds and rules as they have been described
 previously. This definition must conform to the grammar and type
 checking rules of NoWork's language to avoid the definition of
@@ -180,6 +180,9 @@ steps that can be generalized to:
 
 \subsection{Process}
 
+The process by which NoWork can define new rewriting systems and
+evaluate terms in a rewriting system can be reduced to the following steps:
+
 \begin{figure}[!h]
 \begin{verbatim}
 Parsing + Type Checking  + Rewriting
@@ -188,7 +191,7 @@ Rewrting = pattern matching + transformation
 \caption{ Phases of the evaluation of a command }
 \end{figure}
 
-Parsing: Read file with the definition an convert it into an ast that
+Parsing: This step reads a string and converts it to an AST that
 can contain a definition of a language or an interaction with a term
 of the language
 
@@ -220,16 +223,16 @@ pattern, placeholder and transformation in a rule of lambda calculus.
 
 \begin{figure}
 \begin{verbatim}
-App(Lambda(x, y), z) => Subst(...)
+App(Lambda(?x, ?T), ?U) => Subst(...)
 
-Pattern = App(Lambda(x, y), z)
-Transformation = Subst(x?, y?, z?) // Replace x by z in y
-Placeholders = {x, y, z}
+Pattern = App(Lambda(?x, ?T), ?U)
+Transformation = Subst(?x, ?T, ?U)
+Placeholders = {x, T, U}
 
 When applied to:
 
 App(Lambda(a, a), b)
-Environment = { x = a, y = a, z = b }
+Environment = { x = a, T = a, U = b }
 
 \end{verbatim}
 \caption{Elements of a pattern}
@@ -258,18 +261,36 @@ that concerns the way the term is traversed during pattern matching
 and how the transformations are applied. The initial problem is that
 a term can have many occurrences of the same match and depending on
 how the tree is traversed the result of applying the same set of rules
-may be different. If we take the following example:
+may be different.
 
 
 \begin{figure}[!h]
 \includegraphics[scale=0.4]{multiple-reductions.png}
 
 \caption{Term with different reductions}
+\label{multiple-reductions}
 \end{figure}
 
-Explain how the result can be different ..
+In figure~\ref{multiple-reductions} we can see how there are two possible reductions that are marked with
+a darker background. Either the reduction can happen at the root of
+the tree or the reduction can happen in the application that happens
+on the right child of the root. In this case if we keep
+reducing until we get to an irreducible term the result will be the
+same independently of which one of those reductions we apply
+first. However there are cases where the reduction order can have an
+effect in the final result, for example there exist terms in lambda
+calculus that converge when the strategy chosen is call by value
+whereas they would reduced to an irreducible term when call by name is
+used. 
 
-\subsection{Hardcoded strategies}
+On top of that as a user that is experimenting with a new language we
+may want to trace the reduction of terms using different evaluation
+orders.
+
+Thus, NoWork needed to provide different reduction strategies and to
+allow the user to choose which one will be used when a reduction happens.
+
+\subsection{Strategies}
 
 The simplest solution to this problem consists on predefining the
 strategy to explore the tree looking for matches and coding the
@@ -321,32 +342,31 @@ vision that I had for this concept mainly reduced to lambda calculus
 at the beginning of the project.
 
 
-\subsection{ Pedagogical value }
-What have I learned, What are the disadvantages and advantages of the
-solution proposed, how could this implementation could be improved in
-the future...
+%\subsection{ Pedagogical value }
+%What have I learned, What are the disadvantages and advantages of the
+%solution proposed, how could this implementation could be improved in
+%the future...
 
-Problem:
+%Problem:
 
-Defining a framework for writing nominal rewriting systems:
+%Defining a framework for writing nominal rewriting systems:
 
-Why? Because it is useful to play with different variations of a
-rewriting systems to understand the differences in expressivity, ``puissance'',
-congruence, and normalisation properties
+%Why? Because it is useful to play with different variations of a
+%rewriting systems to understand the differences in expressivity, ``puissance'',
+%congruence, and normalisation properties
 
-(Describe every one of those properties)
+%(Describe every one of those properties)
 
-This kind of tool with the right support for traces and the right level of explanation in every
-operation can be a powerful learning tool.
+%This kind of tool with the right support for traces and the right level of explanation in every
+%operation can be a powerful learning tool.
 
-Why nominal and non-linera? The additional adjectives of non-linear and nominal 
-k
+%Why nominal and non-linera? The additional adjectives of non-linear and nominal 
 
 
-The initial implementation
+%The initial implementation
 
-- Is Kleene's algorithm necessary to reduce terms to their normal form
-- Problems with rewriting systems
-  - alpha conversion + difficulty to do proofs
+%- Is Kleene's algorithm necessary to reduce terms to their normal form
+%- Problems with rewriting systems
+%  - alpha conversion + difficulty to do proofs
 
 \end{document}
