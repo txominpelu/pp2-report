@@ -158,7 +158,7 @@ an interpreter.
 We can consider that code written in NoWork belongs to one of two
 different categories:
 
-Definitions of theory. Written in NoWork's language. Contain the
+Definitions of theories. Written in NoWork's language. Contain the
 constants, operators, kinds and rules as they have been described
 previously. This definitions must conform to the grammar and type
 checking rules of NoWork's language to avoid the definition of
@@ -166,25 +166,24 @@ malformed theory.
 
 Theory Terms. Once a theory has been defined with NoWork, terms of
 that theory can be written as trees. This trees should conform to the
-typing rules that have been defined for the theory and that are
+typing rules that have been specified by the theory and that are
 independent of the rules for defining the theory.
 
-In addition to the two previous categories that could consider two independent 
+In addition to the two previous categories that could be considered two independent 
 languages, NoWork provides a mini-language with a list of commands that are parsed by
-NoWork's toplevel and that allow the user to interact with the
-program. When the toplevel receives a command it executes a set of
-steps. In the following section we will see a generalization of the process that is
+the toplevel and that allow the user to interact with the
+program. In the following section we will see a generalization of the process that is
 executed when NoWork receives a command with a description of the most important steps.
 
 \subsection{Process}
 
 The process by which NoWork can define new rewriting systems and
-evaluate terms in a rewriting system can be reduced to the following steps:
+evaluate terms can be reduced to the following steps:
 
 \begin{figure}[!h]
 \begin{verbatim}
 Parsing + Type Checking  + Rewriting
-Rewrting = pattern matching + transformation
+Rewriting = pattern matching + transformation
 \end{verbatim}
 \caption{ Phases of the evaluation of a command }
 \end{figure}
@@ -193,31 +192,29 @@ Parsing: This step reads a string and converts it to an AST that
 can contain a definition of a theory or an interaction with a term
 of the theory.
 
-Typechecking: If the command is a definition of the language, NoWork's
+Typechecking: If the command is a definition of a theory, NoWork's
 language typing rules are verified. Otherwise the command is an evaluation 
 and the term that will be evaluated needs to be typed checked against the definition of
 the theory contained in the environment.
 
 Rewriting: This phase occurs only when the command is not a definition. 
-In this phase the term is explored with a
-given strategy looking for matches of the patterns described in the
-rewriting rules of the language. When a match is found the
-transformation is applied to the part of the term where the match
+In this phase the term is explored looking for matches of the patterns described in the
+rewriting rules. When a match is found the transformation is applied to the part of the term where the match
 was found.
 
 \section{Rewriting}
 
-Rules are defined as patterns with placeholders (look for the name for
-that) . When a match is found the placeholders act as variables whose
-values are given by the content of the match. Those variables can be
-reused in the transformation. In a simple version of pattern matching
-called linear pattern matchin they act like capture groups in regular
-expresions. (Beware that NoWork has implemented a more complex version of
+Rules are defined as patterns with placeholders. 
+When a match is found the placeholders act as variables whose
+values are given by the content of the match. Those variables will be used to provide
+values to the result of the transformation. In a simple version of pattern matching
+called linear pattern matching they act exactly like capture groups in regular
+expresions. NoWork has implemented a more complex version of
 pattern matching called non-linear pattern matching where the same
-placeholder can appear many times in the same pattern).
+placeholder can appear many times in the same pattern.
 
 For example if we take again the initial example we can see the
-pattern, placeholder and transformation in the beta reduction rule of 
+pattern, the placeholder and the transformation in the beta reduction rule of 
 lambda calculus.
 
 \begin{figure}
@@ -246,7 +243,7 @@ If the pattern matcher finds a match, it
 returns the matches with the values for the placeholders and
 the rewriting process only has to fill the holes that exist in the rule's
 transformation with the values of the environment generated from the matching. If the
-pattern matcher doesn't find a match for the rule, then the rewriting process restart
+pattern matcher doesn't find a match for the rule, then the rewriting process restarts
 the process with another rule.
 
 %% Rewriting Algorithm in pseudocode
@@ -263,7 +260,7 @@ Subst (x, y, z ) in Environment => Subst (a, a, b)
 \end{figure}
 
 However this really simple vision of rewriting hides a small subtlety
-that concerns the way the term is traversed during pattern matching
+that concerns the way the term is traversed during rewriting
 and how the transformations are applied. The initial problem is that
 a term can have many occurrences of the same match and depending on
 how the tree is traversed the result of applying the same set of rules
@@ -279,7 +276,7 @@ may be different.
 
 In figure~\ref{multiple-reductions} we can see how there are two possible reductions that are marked with
 a darker background. Either the reduction can happen at the root of
-the tree or the reduction can happen in the application that happens
+the tree or the reduction can happen in the application that appears
 on the right child of the root. In this case if we keep
 reducing until we get to an irreducible term the result will be the
 same independently of which one of those reductions we apply
@@ -293,7 +290,7 @@ On top of that as a user that is experimenting with a new language we
 may want to trace the reduction of terms using different evaluation
 orders.
 
-Thus, NoWork needed to provide different reduction strategies and to
+Those are the reasons why NoWork needed to provide different reduction strategies and to
 allow the user to choose which one will be used when a reduction happens.
 
 \subsection{Strategies}
@@ -314,13 +311,13 @@ explanation of the language of strategies is provided in NoWork's user
 manual. 
 \section{Conclusion}
 
-We have seen that programming languages have many applications not
+We have seen that rewriting theories have many applications not
 only in computer science but also in other fields like logic and the
 analysis of business processes for example. However the implementation
-of programming languages for the verification of some of their
+of rewriting theories for the verification of some of their
 properties is a long process even if some of the steps could be
 simplified and generalized. That is the purpose of NoWork, to simplify
-the process of creating a naive version of a programming language just
+the process of creating a naive version of a rewriting theory just
 by describing the rewriting rules and the typing rules of the
 language. Once this is done the user can test the reduction of a term
 given its AST.
@@ -328,23 +325,23 @@ given its AST.
 
 We have also seen a quick description of what is the process that is
 carried out inside NoWork to allow the user to define a language and
-try to reduce a term of the language to then explain more in depth the
-implementation process for the rewriting part of the process. We have
-seen the importance of the evaluation order in the matches and how in
+to reduce a term of a rewriting theory. Then, we have explained more in depth the
+implementation of the rewriting part of the process. We have
+seen the importance of the evaluation order in the matches and how
 NoWork started by implementing two simple hardcoded strategies
 Top-Down and Bottom-Up to then provide a more powerful and flexible
 solution based on a minilanguage for the description of strategies.
 
 The resulting implementation of NoWork is a tool that allows to
-define languages in a simple way and that provides a flexible language
-to specify the evaluation strategy for the language. Therefore it
-could prove a really valuable tool for defining prototype languages
+define theories in a simple way and that provides a flexible language
+to specify the evaluation strategy. All this features make it 
+a really valuable tool for defining prototype languages
 and manually verify some reduction properties on them.
 
 From a pedagogical point of view the implementation of nominal
-workbench has provided me with a deeper understanding of rewriting,
-considering this concept in Peano Arithmetic, or CCS has widened the
-vision that I had for this concept mainly reduced to lambda calculus
+workbench has provided me with a deeper understanding of rewriting. 
+Considering this concept in Peano Arithmetic, or CCS has widened the
+vision that I had for this concept that was limited to lambda calculus
 at the beginning of the project.
 
 
